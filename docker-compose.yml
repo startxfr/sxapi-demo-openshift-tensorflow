@@ -1,0 +1,71 @@
+api:
+  container_name: "sxapi-demo-openshift-tensorflow-api"
+  build: api/
+  environment:
+  - SX_VERBOSE=true
+  - SX_DEBUG=true
+  - COUCHBASE_NODE_UI_SERVICE_HOST=db
+  - COUCHBASE_NODE_UI_SERVICE_PORT=8091
+  - COUCHBASE_BUCKET=demo
+  - COUCHBASE_USER=Administrator
+  - COUCHBASE_PASSWORD=Administrator123
+  - BOT_SERVICE_HOST=bot
+  ports:
+    - "8080:8080"
+  links:
+    - "bot:bot"
+    - "db:db"
+  volumes:
+  - "/secure/dev/startx/sxapi-demo-openshift-tensorflow/api/app.js:/app/app.js:Z"
+  - "/secure/dev/startx/sxapi-demo-openshift-tensorflow/api/package.json:/app/package.json:Z"
+  - "/secure/dev/startx/sxapi-demo-openshift-tensorflow/api/sxapi.json:/app/sxapi.json:Z"
+  - "/secure/dev/startx/sxapi-demo-openshift-tensorflow/api/mylib.js:/app/mylib.js:Z"
+  command: ["/bin/sx-nodejs" , "run"]
+
+www:
+  container_name: "sxapi-demo-openshift-tensorflow-www"
+  build: www/
+  environment:
+  - SX_VERBOSE=true
+  - SX_DEBUG=true
+  - DEMO_API=localhost:8080
+  ports:
+    - "8081:8080"
+  volumes:
+  - "/secure/dev/startx/sxapi-demo-openshift-tensorflow/www/app.js:/app/app.js:Z"
+  - "/secure/dev/startx/sxapi-demo-openshift-tensorflow/www/package.json:/app/package.json:Z"
+  - "/secure/dev/startx/sxapi-demo-openshift-tensorflow/www/sxapi.json:/app/sxapi.json:Z"
+  - "/secure/dev/startx/sxapi-demo-openshift-tensorflow/www/mylib.js:/app/mylib.js:Z"
+  - "/secure/dev/startx/sxapi-demo-openshift-tensorflow/www/static:/app/static:Z"
+  command: ["/bin/sx-nodejs" , "run"]
+
+ts-mnist:
+  container_name: "sxapi-demo-openshift-tensorflow-tf-mnist"
+  image: submod/mnist-app:latest
+  environment:
+  - PREDICTION_HOST1=ts-reg
+  - PREDICTION_HOST2=ts-cnn
+  - PREDICTION_PORT1=6006
+  - PREDICTION_PORT2=6007
+  links:
+    - "ts-reg:ts-reg"
+    - "ts-cnn:ts-cnn"
+  ports:
+    - "8000:8000"
+    - "5000:5000"
+
+ts-reg:
+  container_name: "sxapi-demo-openshift-tensorflow-tf-reg"
+  image: radanalyticsio/tensorflow-serving-s2i:latest
+  volumes:
+  - "/secure/dev/startx/sxapi-demo-openshift-tensorflow/tf/regression/1:/models/regression/1:z"
+  ports:
+    - "6006:6006"
+
+ts-cnn:
+  container_name: "sxapi-demo-openshift-tensorflow-tf-cnn"
+  image: radanalyticsio/tensorflow-serving-s2i:latest
+  volumes:
+  - "/secure/dev/startx/sxapi-demo-openshift-tensorflow/tf/cnn/1:/models/cnn/1:z"
+  ports:
+    - "6007:6006"

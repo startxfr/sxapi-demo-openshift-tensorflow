@@ -1,0 +1,91 @@
+{
+    "name": "sxapi-demo-openshift-tensorflow-dev-api",
+    "description": "API application for the sxapi openshift demo",
+    "version": "0.1.10",
+    "debug": true,
+    "log": {
+        "filters": {
+            "level": "0,1,2,3,4,5",
+            "type": "debug,info,error,warn"
+        }
+    },
+    "session": {
+        "duration": 3600,
+        "auto_create": true,
+        "transport": {
+            "type": "cookie",
+            "cookie_name": "sxapi-sess"
+        },
+        "backend": {
+            "type": "memory"
+        }
+    },
+    "resources": {
+        "serviceinfo-api": {
+            "_class": "serviceinfo"
+        }
+    },
+    "server": {
+        "type": "express",
+        "port": "8080",
+        "lib": "./mylib",
+        "enableWebsockets": true,
+        "websockets": {
+            "events": [
+                {
+                    "event": "disconnect",
+                    "handler": "$ws.lib.websockets.disconnectEndpoint"
+                }
+            ]
+        },
+        "endpoints": [
+            {
+                "path": "/",
+                "desc": "display API welcome message",
+                "header": {
+                    "Content-Type": "text/html"
+                },
+                "body": [
+                    "<html>",
+                    "<head><title>Application {{name}}</title></head>",
+                    "<link rel=\"stylesheet\" href=\"https://goo.gl/4kFNLH\">",
+                    "<body><div class=\"container\">",
+                    "<h1><span class=\"glyphicon glyphicon-eye-open\"></span> Your API {{name}} is live !</h1>",
+                    "<div class=\"alert alert-success\" role=\"alert\"><p>This API is {{description}} running on <b>{{hostname}}</b> with current release <b>v{{version}}</b></p></div>",
+                    "<div class=\"alert alert-info\" role=\"alert\"><p>The application signature is <b>{{appsign}}</b> and corespond to the example API using micro-service framework <b>{{package.name}} v{{package.version}}</b>.</p></div>",
+                    "<nav class=\"navbar navbar-default navbar-fixed-bottom\"><div class=\"container\"> Microservice engine is <b>{{package.name}} v{{package.version}}</b>. {{package.description}}</div></nav>",
+                    "</div></body>",
+                    "</html>"
+                ]
+            },
+            {
+                "path": "/health",
+                "resource": "serviceinfo-api",
+                "endpoint": "health"
+            },
+            {
+                "path": "/info",
+                "desc": "Display technical informations about this API",
+                "resource": "serviceinfo-api",
+                "endpoint": "info"
+            },
+            {
+                "path": "/ping",
+                "desc": "Ping the application. Return a sample message in text",
+                "code": "200",
+                "body": "pong"
+            }
+        ]
+    },
+    "bot": {
+        "lib": "./mylib",
+        "cron": [
+            {
+                "id": "test-cron-task",
+                "name": "Execute test cron task",
+                "schedule": "*/1 * * * *",
+                "task": "cronTestHandler"
+            }
+        ]
+    }
+}

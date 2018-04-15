@@ -1,0 +1,4 @@
+FROM busybox
+ADD 1 /models/cnn/1
+
+CMD ["/bin/ash"]

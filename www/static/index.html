@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>SXAPI Demo tensorflow</title>
+        <meta charset="UTF-8">
+        <link rel="icon" type="image/x-icon" href="images/favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
+        <link rel="stylesheet" href="app.css">
+    </head>
+    <body>
+        <nav class="navbar navbar-default navbar-fixed-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="/index.html">
+                        <img alt="STARTX" src="images/startx.png">
+                    </a>
+                    <h4 class="navbar-text">SXAPI Demo tensorflow</h4>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <br>
+            <br>
+            <br>
+            <br>
+            <div class="jumbotron">
+                <h1><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> SXAPI Demo tensorflow</h1>
+                <p>
+                    Bienvenue sur la demo d'un application multi-tier utilisant tensorflow et openshift. 
+                    le frontend statique est servi par le container <b id="appContainer"></b> 
+                    tandis que le contenu dynamique provient du container <b id="appSvContainer"></b>
+                </p>
+            </div>
+            
+            
+            
+        </div>
+        <nav class="navbar navbar-default navbar-fixed-bottom">
+            <div class="container">
+                &copy; STARTX - frontend : v<span id="appRelease">0.0.0</span> - api : v<span id="appSvRelease">0.0.0</span>
+            </div>
+        </nav>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script src="socket.io.js"></script>
+        <script src="app.js"></script>
+    </body>
+</html>

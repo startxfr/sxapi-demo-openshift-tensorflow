@@ -1,0 +1,63 @@
+{
+    "name": "sxapi-demo-openshift-tensorflow-dev-www",
+    "description": "Web frontend application for the sxapi openshift demo",
+    "version": "0.1.10",
+    "debug": true,
+    "log": {
+        "filters": {
+            "level": "0,1,2,3,4",
+            "type": "debug,info,error,warn"
+        }
+    },
+    "resources": {
+        "serviceinfo-api": {
+            "_class": "serviceinfo"
+        }
+    },
+    "server": {
+        "type": "express",
+        "port": "8080",
+        "static": [
+            {
+                "path": "/",
+                "dir": "/static"
+            }
+        ],
+        "endpoints": [
+            {
+                "path": "/health",
+                "resource": "serviceinfo-api",
+                "endpoint": "health"
+            },
+            {
+                "path": "/info",
+                "desc": "Display technical informations about this API",
+                "resource": "serviceinfo-api",
+                "endpoint": "info"
+            },
+            {
+                "path": "/env",
+                "desc": "Display environements variable for this API",
+                "resource": "serviceinfo-api",
+                "endpoint": "getEnv"
+            },
+            {
+                "path": "/ping",
+                "desc": "Ping the application. Return a sample message in text",
+                "code": "200",
+                "body": "pong"
+            }
+        ]
+    },
+    "bot": {
+        "lib": "./mylib",
+        "cron": [
+            {
+                "id": "test-cront-task",
+                "name": "Execute test cron task",
+                "schedule": "*/1 * * * *",
+                "task": "myCronFunction"
+            }
+        ]
+    }
+}
