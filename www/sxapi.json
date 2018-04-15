@@ -1,5 +1,5 @@
 {
-    "name": "sxapi-demo-openshift-tensorflow-test-www",
+    "name": "sxapi-demo-openshift-tensorflow-prod-www",
     "description": "Web frontend application for the sxapi openshift demo",
     "version": "0.1.11",
     "debug": true,

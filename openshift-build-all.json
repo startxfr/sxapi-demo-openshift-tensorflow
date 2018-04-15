@@ -9,7 +9,7 @@
             "iconClass": "icon-nodejs",
             "tags": "startx,demo,sxapi,tensorflow",
             "openshift.io/provider-display-name": "STARTX",
-            "openshift.io/documentation-url": "https://github.com/startxfr/sxapi-demo-openshift-tensorflow/blob/test/README.md",
+            "openshift.io/documentation-url": "https://github.com/startxfr/sxapi-demo-openshift-tensorflow/blob/prod/README.md",
             "openshift.io/support-url": "https://github.com/startxfr/sxapi-demo-openshift-tensorflow/issues/new"
         }
     },
@@ -1211,7 +1211,7 @@
             "name": "SOURCE_BRANCH",
             "displayName": "Application source-code branch",
             "description": "Name of the branch to use for building this application (dev, test, test, prod)",
-            "value": "test",
+            "value": "prod",
             "required": true
         },
         {
