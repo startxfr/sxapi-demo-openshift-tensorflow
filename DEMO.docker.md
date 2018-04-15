@@ -15,7 +15,7 @@ pwd
 docker build -t sxapi-demo-api api
 # build web frontend container
 docker build -t sxapi-demo-www www
-# build twitter bot container
+# build digit bot container
 docker build -t sxapi-demo-bot bot
 ```
 
@@ -53,10 +53,10 @@ You can then connect to you admin panel (web console) at [http://localhost:8091]
     - Enable bucket **flush** action
     - Click the **Add Bucket** button
 
-## Deploy twitter bot service using docker
+## Deploy digit bot service using docker
 
 ```bash
-# deploy twitter bot backend container
+# deploy digit bot backend container
 docker run -d \
        --name sxapi-demo-openshift-tensorflow-bot \
        -e SX_VERBOSE=true \

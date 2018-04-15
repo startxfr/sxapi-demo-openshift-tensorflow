@@ -1328,7 +1328,7 @@
             "name": "APP_NAME",
             "displayName": "Short name of the application",
             "description": "Name of the application used to identify and tag ressources related to this full stack",
-            "value": "twitter",
+            "value": "digit",
             "required": true
         },
         {

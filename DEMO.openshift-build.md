@@ -40,7 +40,7 @@ part of this example.
 This template will create the following objects :
 - **1 ImageStream** with 3 tags linked to public bases images `tensorflow/k8s-operator`, `startx/sv-tensorflow` and `startx/sv-nodejs`
 - **1 ImageStream** with 3 tag used for hosting the **bot**, **api** and **www** build image
-- **2 Secret** holding `tensorflow-auth` and `twitter-auth` credentials
+- **2 Secret** holding `tensorflow-auth` and `digit-auth` credentials
 - **3 BuildConfig** describing how to build the **bot**, **api** and **www** images
 - **4 DeploymentConfig** describing how to deploy and run the **tensorflow**, **bot**, **api** and **www** components
 - **3 Service** to expose **bot**, **api** and **www** internaly and/or link them to route objects
@@ -59,9 +59,9 @@ and api as well as bot components will follow
 ```bash
 oc project demo
 oc process -f https://raw.githubusercontent.com/startxfr/sxapi-demo-openshift-tensorflow/dev/openshift-build-all-ephemeral.json \
-           -p APP_NAME=twitter \
+           -p APP_NAME=digit \
            -p SOURCE_BRANCH=dev \
-           -p DEMO_API=twitter-dev-api-demo.openshift.demo.startx.fr \
+           -p DEMO_API=digit-dev-api-demo.openshift.demo.startx.fr \
            -p COUCHBASE_USER="Administrator" \
            -p COUCHBASE_PASSWORD="Administrator123" \
            -p COUCHBASE_BUCKET="demo" | \
@@ -93,14 +93,14 @@ oc create -f https://raw.githubusercontent.com/startxfr/sxapi-demo-openshift-ten
           .--------------------------.   .-----------------. | | dev-api  | | .----------.
           |       Source code        |   |  DeployConfig   | | '----------' | | Service  |
           |--------------------------|   |-----------------|-. .----------. .------------|
-          | sxapi-demo...chbase/www  |   | twitter-dev-www | | |   Pod    | | | dev-www  |
+          | sxapi-demo...chbase/www  |   | digit-dev-www   | | |   Pod    | | | dev-www  |
           '--------------------------'   '-----------------' '>|----------|<' '----------'
                               |                   ^            | dev-api  |      /
                               v                   |            '----------'     /
                        .-------------.   .-----------------.        .----------v
                        | BuildConfig |   |    WWW image    |        |  Route   |
                        |-------------|-->|-----------------|        |----------|
-                       | twitter-www |   | twitter-dev:www |        | dev-www  |
+                       | digit-www   |   | digit-dev:www   |        | dev-www  |
                        ^-------------'   '-----------------'        '----------\
    .------------------/                                                         v .-,(  ),-.    
    |  Builder image   |                                                        .-(          )-. 
@@ -110,7 +110,7 @@ oc create -f https://raw.githubusercontent.com/startxfr/sxapi-demo-openshift-ten
                        v-------------.   .-----------------.        .----------/
                        | BuildConfig |   |    API image    |        |  Route   |
                        |-------------|-->|-----------------|        |----------|
-                       | twitter-api |   | twitter-dev:api |        | dev-api  |
+                       | digit-api   |   | digit-dev:api   |        | dev-api  |
                        '-------------'   '-----------------'        '----------^
                               ^                   |                             \
                               |                   |            .----------.      \
@@ -119,7 +119,7 @@ oc create -f https://raw.githubusercontent.com/startxfr/sxapi-demo-openshift-ten
           .--------------------------.   .-----------------. | | dev-api  | |  | Service  |
           |       Source code        |   |  DeployConfig   | | '----------' .--|----------|
           |--------------------------|   |-----------------|-. .----------. |  | dev-api  |
-          | sxapi-demo...chbase/api  |   | twitter-dev-api | | |   Pod    | |  '----------'
+          | sxapi-demo...chbase/api  |   | digit-dev-api   | | |   Pod    | |  '----------'
           '--------------------------'   '-----------------' '>|----------|<'
                                                                | dev-api  |<--.
                                                                '----------'   |
@@ -128,14 +128,14 @@ oc create -f https://raw.githubusercontent.com/startxfr/sxapi-demo-openshift-ten
 .-------------------.  .-------------.   .-----------------.   .----------.   |
 |   Builder image   |  | BuildConfig |   |    API image    |   | Service  |   |
 |-------------------|->|-------------|-->|-----------------|   |----------|   |
-| startx/sv-nodejs  |  | twitter-bot |   | twitter-dev:bot |   | dev-bot  |   |
+| startx/sv-nodejs  |  | digit-bot   |   | digit-dev:bot   |   | dev-bot  |   |
 '-------------------'  '-------------'   '-----------------'   '----------'   |
                               ^                   |                  |        |
                               |                   v                  v        |
           .--------------------------.   .-----------------.   .----------.   |
           |       Source code        |   |  DeployConfig   |   |   Pod    |<-.|
           |--------------------------|   |-----------------|-->|----------|  ||
-          | sxapi-demo...chbase/bot  |   | twitter-dev-bot |   | dev-bot  |  ||
+          | sxapi-demo...chbase/bot  |   | digit-dev-bot   |   | dev-bot  |  ||
           '--------------------------'   '-----------------'   '----------'  ||
                                                                              ||
                                                                              ||
@@ -143,27 +143,27 @@ oc create -f https://raw.githubusercontent.com/startxfr/sxapi-demo-openshift-ten
   .--------------------.                                                     ||
   |    DeployConfig    |                        .----------------.           ||
   |--------------------|------.                 |      Pod       |           ||
-  | tensorflow-operator |      |             .-->|----------------|<--.       ||
-  '--------------------'      |             |   | tensorflow-node |   |       ||
+  | tensorflow-operator|      |             .-->|----------------|<--.       ||
+  '--------------------'      |             |   | tensorflow-node|   |       ||
                               |             |   '----------------'   |       ||
                               v             |                        |       vv
                    .--------------------.   |   .----------------.   |   .----------------.
                    |        Pod         |---'   |      Pod       |   '---|    Service     |
                    |--------------------|------>|----------------|<------|----------------|
-                   | tensorflow-operator |---.   | tensorflow-node |   .---| tensorflow-node |
+                   | tensorflow-operator|---.   | tensorflow-node|   .---| tensorflow-node|
                    '--------------------'   |   '----------------'   |   '----------------'
                               ^             |                        |
                               |             |   .----------------.   |
   .--------------------.      |             |   |      Pod       |   |
   |        CRD         |      |             '-->|----------------|<--'
-  |--------------------|------'                 | tensorflow-node |
-  | tensorflow-cluster  |                        '----------------'
+  |--------------------|------'                 | tensorflow-node|
+  | tensorflow-cluster |                        '----------------'
   '--------------------'
 ```
 
 ### Access your application in your browser
 
-Access your application using your browser on `http://twitter-dev-www-demo.openshift.demo.startx.fr`
+Access your application using your browser on `http://digit-dev-www-demo.openshift.demo.startx.fr`
 
 
 ## Troubleshooting, contribute & credits
