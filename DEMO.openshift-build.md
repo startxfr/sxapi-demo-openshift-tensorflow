@@ -33,7 +33,7 @@ For full explanation on security constrains, read [tensorflow - Openshift RBAC d
 
 ### Full template
 
-This demo provide an [all-in-one build template](https://raw.githubusercontent.com/startxfr/sxapi-demo-openshift-tensorflow/dev/openshift-build-all-ephemeral.json)
+This demo provide an [all-in-one build template](https://raw.githubusercontent.com/startxfr/sxapi-demo-openshift-tensorflow/master/openshift-build-all-ephemeral.json)
 to build and deploy the full application stack using build config and deployement config for every services
 part of this example.
 
@@ -58,10 +58,10 @@ Don't forget to follow previous requirement before running this command otherwis
 and api as well as bot components will follow 
 ```bash
 oc project demo
-oc process -f https://raw.githubusercontent.com/startxfr/sxapi-demo-openshift-tensorflow/dev/openshift-build-all-ephemeral.json \
+oc process -f https://raw.githubusercontent.com/startxfr/sxapi-demo-openshift-tensorflow/master/openshift-build-all-ephemeral.json \
            -p APP_NAME=digit \
-           -p SOURCE_BRANCH=dev \
-           -p DEMO_API=digit-dev-api-demo.openshift.demo.startx.fr \
+           -p SOURCE_BRANCH=master \
+           -p DEMO_API=digit-master-api-demo.openshift.demo.startx.fr \
            -p COUCHBASE_USER="Administrator" \
            -p COUCHBASE_PASSWORD="Administrator123" \
            -p COUCHBASE_BUCKET="demo" | \
@@ -75,12 +75,12 @@ oc get all
 If you run this demo from the web interface, you will face an error explaining that the CRD resource could not be created
 You can run the template anyway. 
 Your installation will be the partial and you will need to add the 
-[tensorflow cluster CRD](https://raw.githubusercontent.com/startxfr/sxapi-demo-openshift-tensorflow/dev/openshift-crd-cluster.yml) 
+[tensorflow cluster CRD](https://raw.githubusercontent.com/startxfr/sxapi-demo-openshift-tensorflow/master/openshift-crd-cluster.yml) 
 using the CLI.
 
 ```bash
 oc project demo
-oc create -f https://raw.githubusercontent.com/startxfr/sxapi-demo-openshift-tensorflow/dev/openshift-crd-cluster.yml
+oc create -f https://raw.githubusercontent.com/startxfr/sxapi-demo-openshift-tensorflow/master/openshift-crd-cluster.yml
 ```
 
 
