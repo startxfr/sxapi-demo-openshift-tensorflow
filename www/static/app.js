@@ -4,6 +4,7 @@
 app = {
   config: {
     apiUrl: "http://localhost/",
+    mnistUrl: "http://localhost/",
     traceFrequency: 100
   },
   init: function () {
@@ -13,6 +14,10 @@ app = {
       if (status === "success" && response.code === "ok") {
         if (response.data && response.data.DEMO_API) {
           app.config.apiUrl = "http://" + response.data.DEMO_API + "/";
+        }
+        if (response.data && response.data.DEMO_MNIST) {
+          app.config.mnistUrl = "http://" + response.data.DEMO_MNIST + "/";
+          $(".linkMnist").attr("href", app.config.mnistUrl);
         }
         app.loadFrontendInfo();
         app.api.init();

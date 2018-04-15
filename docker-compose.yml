@@ -4,17 +4,8 @@ api:
   environment:
   - SX_VERBOSE=true
   - SX_DEBUG=true
-  - COUCHBASE_NODE_UI_SERVICE_HOST=db
-  - COUCHBASE_NODE_UI_SERVICE_PORT=8091
-  - COUCHBASE_BUCKET=demo
-  - COUCHBASE_USER=Administrator
-  - COUCHBASE_PASSWORD=Administrator123
-  - BOT_SERVICE_HOST=bot
   ports:
     - "8080:8080"
-  links:
-    - "bot:bot"
-    - "db:db"
   volumes:
   - "/secure/dev/startx/sxapi-demo-openshift-tensorflow/api/app.js:/app/app.js:Z"
   - "/secure/dev/startx/sxapi-demo-openshift-tensorflow/api/package.json:/app/package.json:Z"
@@ -29,6 +20,7 @@ www:
   - SX_VERBOSE=true
   - SX_DEBUG=true
   - DEMO_API=localhost:8080
+  - DEMO_MNIST=localhost:8000
   ports:
     - "8081:8080"
   volumes:

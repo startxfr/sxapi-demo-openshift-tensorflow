@@ -484,22 +484,22 @@
                                 "name": "tensorflow-mnist",
                                 "image": " ",
                                 "env": [
-                                        {
-                                            "name": "PREDICTION_HOST1",
-                                            "value": "tensorflow-reg"
-                                        },
-                                        {
-                                            "name": "PREDICTION_HOST2",
-                                            "value": "tensorflow-cnn"
-                                        },
-                                        {
-                                            "name": "PREDICTION_PORT1",
-                                            "value": "6006"
-                                        },
-                                        {
-                                            "name": "PREDICTION_PORT2",
-                                            "value": "6006"
-                                        }
+                                    {
+                                        "name": "PREDICTION_HOST1",
+                                        "value": "tensorflow-reg"
+                                    },
+                                    {
+                                        "name": "PREDICTION_HOST2",
+                                        "value": "tensorflow-cnn"
+                                    },
+                                    {
+                                        "name": "PREDICTION_PORT1",
+                                        "value": "6006"
+                                    },
+                                    {
+                                        "name": "PREDICTION_PORT2",
+                                        "value": "6006"
+                                    }
                                 ],
                                 "ports": [
                                     {
@@ -539,8 +539,7 @@
                         "timeoutSeconds": 20,
                         "maxUnavailable": "25%",
                         "maxSurge": "25%"
-                    },
-                    "resources": {}
+                    }
                 },
                 "triggers": [
                     {
@@ -552,7 +551,7 @@
                             ],
                             "from": {
                                 "kind": "ImageStreamTag",
-                                "name": "startx-${BASE_IMAGE_TAG}:tensorflow-reg"
+                                "name": "${APP_NAME}-${SOURCE_BRANCH}:tf-reg"
                             }
                         }
                     },
@@ -620,8 +619,7 @@
                         "timeoutSeconds": 20,
                         "maxUnavailable": "25%",
                         "maxSurge": "25%"
-                    },
-                    "resources": {}
+                    }
                 },
                 "triggers": [
                     {
@@ -633,7 +631,7 @@
                             ],
                             "from": {
                                 "kind": "ImageStreamTag",
-                                "name": "startx-${BASE_IMAGE_TAG}:tensorflow-cnn"
+                                "name": "${APP_NAME}-${SOURCE_BRANCH}:tf-cnn"
                             }
                         }
                     },
@@ -815,138 +813,6 @@
             "kind": "DeploymentConfig",
             "apiVersion": "v1",
             "metadata": {
-                "name": "${APP_NAME}-${SOURCE_BRANCH}-bot",
-                "labels": {
-                    "app": "${APP_NAME}",
-                    "type": "${SOURCE_BRANCH}-bot",
-                    "provider": "startx",
-                    "template": "sxapi-demo-openshift-tensorflow-template"
-                },
-                "annotations": {
-                    "openshift.io/generated-by": "STARTX"
-                }
-            },
-            "spec": {
-                "strategy": {
-                    "type": "Rolling",
-                    "rollingParams": {
-                        "timeoutSeconds": 30,
-                        "maxUnavailable": "25%",
-                        "maxSurge": "25%"
-                    },
-                    "resources": {}
-                },
-                "triggers": [
-                    {
-                        "type": "ImageChange",
-                        "imageChangeParams": {
-                            "automatic": true,
-                            "containerNames": [
-                                "${APP_NAME}-${SOURCE_BRANCH}-bot"
-                            ],
-                            "from": {
-                                "kind": "ImageStreamTag",
-                                "name": "${APP_NAME}-${SOURCE_BRANCH}:bot"
-                            }
-                        }
-                    },
-                    {
-                        "type": "ConfigChange"
-                    }
-                ],
-                "replicas": 1,
-                "test": false,
-                "selector": {
-                    "app": "${APP_NAME}",
-                    "type": "${SOURCE_BRANCH}-bot",
-                    "deploymentconfig": "${APP_NAME}-${SOURCE_BRANCH}-bot"
-                },
-                "template": {
-                    "metadata": {
-                        "labels": {
-                            "app": "${APP_NAME}",
-                            "type": "${SOURCE_BRANCH}-bot",
-                            "provider": "startx",
-                            "template": "sxapi-demo-openshift-tensorflow-template",
-                            "deploymentconfig": "${APP_NAME}-${SOURCE_BRANCH}-bot"
-                        },
-                        "annotations": {
-                            "openshift.io/generated-by": "STARTX"
-                        }
-                    },
-                    "spec": {
-                        "containers": [
-                            {
-                                "name": "${APP_NAME}-${SOURCE_BRANCH}-bot",
-                                "image": " ",
-                                "env": [
-                                    {
-                                        "name": "SX_VERBOSE",
-                                        "value": "true"
-                                    },
-                                    {
-                                        "name": "SX_DEBUG",
-                                        "value": "true"
-                                    }
-                                ],
-                                "command": [
-                                    "/bin/sx-nodejs"
-                                ],
-                                "args": [
-                                    "run"
-                                ],
-                                "ports": [
-                                    {
-                                        "containerPort": 8080,
-                                        "protocol": "TCP"
-                                    }
-                                ],
-                                "resources": {
-                                    "limits": {
-                                        "memory": "128Mi"
-                                    }
-                                },
-                                "livenessProbe": {
-                                    "exec": {
-                                        "command": [
-                                            "/bin/sx-nodejs",
-                                            "isLive"
-                                        ]
-                                    },
-                                    "initialDelaySeconds": 5,
-                                    "timeoutSeconds": 1,
-                                    "periodSeconds": 20,
-                                    "successThreshold": 1,
-                                    "failureThreshold": 3
-                                },
-                                "readinessProbe": {
-                                    "httpGet": {
-                                        "path": "/health",
-                                        "port": 8080,
-                                        "scheme": "HTTP"
-                                    },
-                                    "initialDelaySeconds": 10,
-                                    "timeoutSeconds": 1,
-                                    "periodSeconds": 15,
-                                    "successThreshold": 1,
-                                    "failureThreshold": 3
-                                },
-                                "terminationMessagePath": "/dev/termination-log",
-                                "imagePullPolicy": "Always"
-                            }
-                        ],
-                        "restartPolicy": "Always",
-                        "terminationGracePeriodSeconds": 30,
-                        "dnsPolicy": "ClusterFirst",
-                        "securityContext": {}
-                    }
-                }
-            }
-        },
-        {
-            "kind": "DeploymentConfig",
-            "apiVersion": "v1",
-            "metadata": {
                 "name": "${APP_NAME}-${SOURCE_BRANCH}-www",
                 "labels": {
                     "app": "${APP_NAME}",
@@ -1022,7 +888,11 @@
                                     },
                                     {
                                         "name": "DEMO_API",
-                                        "value": "${DEMO_API}"
+                                        "value": "${APP_NAME}-${SOURCE_BRANCH}-api-${DEMO_API}"
+                                    },
+                                    {
+                                        "name": "DEMO_MNIST",
+                                        "value": "tensorflow-mnist-${DEMO_API}"
                                     }
                                 ],
                                 "command": [
@@ -1083,6 +953,41 @@
             "kind": "Service",
             "apiVersion": "v1",
             "metadata": {
+                "name": "${APP_NAME}-${SOURCE_BRANCH}-www",
+                "labels": {
+                    "app": "${APP_NAME}",
+                    "type": "${SOURCE_BRANCH}-www",
+                    "provider": "startx",
+                    "template": "sxapi-demo-openshift-tensorflow-template"
+                },
+                "annotations": {
+                    "service.alpha.openshift.io/dependencies": "[{\"name\": \"${APP_NAME}-${SOURCE_BRANCH}-api\", \"namespace\": \"\", \"kind\": \"Service\"}]",
+                    "template.openshift.io/expose-uri": "http://{.spec.clusterIP}:{.spec.ports[?(.name==\"http\")].port}",
+                    "openshift.io/generated-by": "STARTX"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "http",
+                        "protocol": "TCP",
+                        "port": 8080,
+                        "targetPort": 8080
+                    }
+                ],
+                "selector": {
+                    "app": "${APP_NAME}",
+                    "type": "${SOURCE_BRANCH}-www",
+                    "deploymentconfig": "${APP_NAME}-${SOURCE_BRANCH}-www"
+                },
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
                 "name": "${APP_NAME}-${SOURCE_BRANCH}-api",
                 "labels": {
                     "app": "${APP_NAME}",
@@ -1091,12 +996,14 @@
                     "template": "sxapi-demo-openshift-tensorflow-template"
                 },
                 "annotations": {
+                    "template.openshift.io/expose-uri": "http://{.spec.clusterIP}:{.spec.ports[?(.name==\"http\")].port}",
                     "openshift.io/generated-by": "STARTX"
                 }
             },
             "spec": {
                 "ports": [
                     {
+                        "name": "http",
                         "protocol": "TCP",
                         "port": 8080,
                         "targetPort": 8080
@@ -1123,6 +1030,7 @@
                     "template": "sxapi-demo-openshift-tensorflow-template"
                 },
                 "annotations": {
+                    "template.openshift.io/expose-uri": "http://{.spec.clusterIP}:{.spec.ports[?(.name==\"8000-tcp\")].port}",
                     "openshift.io/generated-by": "STARTX"
                 }
             },
@@ -1211,38 +1119,6 @@
                     "app": "tensorflow",
                     "type": "tensorflow-cnn",
                     "deploymentconfig": "tensorflow-cnn"
-                },
-                "type": "ClusterIP",
-                "sessionAffinity": "None"
-            }
-        },
-        {
-            "kind": "Service",
-            "apiVersion": "v1",
-            "metadata": {
-                "name": "${APP_NAME}-${SOURCE_BRANCH}-www",
-                "labels": {
-                    "app": "${APP_NAME}",
-                    "type": "${SOURCE_BRANCH}-www",
-                    "provider": "startx",
-                    "template": "sxapi-demo-openshift-tensorflow-template"
-                },
-                "annotations": {
-                    "openshift.io/generated-by": "STARTX"
-                }
-            },
-            "spec": {
-                "ports": [
-                    {
-                        "protocol": "TCP",
-                        "port": 8080,
-                        "targetPort": 8080
-                    }
-                ],
-                "selector": {
-                    "app": "${APP_NAME}",
-                    "type": "${SOURCE_BRANCH}-www",
-                    "deploymentconfig": "${APP_NAME}-${SOURCE_BRANCH}-www"
                 },
                 "type": "ClusterIP",
                 "sessionAffinity": "None"
@@ -1347,9 +1223,9 @@
         },
         {
             "name": "DEMO_API",
-            "displayName": "API fqdn",
-            "description": "Domain name of the API endpoint to use in this frontend (api-xxxxx.openshift.demo.startx.fr were xxxxx is your project namespace)",
-            "value": "api-master-demo.openshift.demo.startx.fr",
+            "displayName": "API fqdn suffix",
+            "description": "Domain name suffix for generating API endpoint to use in this frontend (xxxxx.openshift.demo.startx.fr were xxxxx is your project namespace)",
+            "value": "demo.openshift.demo.startx.fr",
             "required": true
         },
         {
