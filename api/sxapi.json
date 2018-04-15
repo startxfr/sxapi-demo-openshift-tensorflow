@@ -1,5 +1,5 @@
 {
-    "name": "sxapi-demo-openshift-tensorflow-master-api",
+    "name": "sxapi-demo-openshift-tensorflow-test-api",
     "description": "API application for the sxapi openshift demo",
     "version": "0.1.11",
     "debug": true,
