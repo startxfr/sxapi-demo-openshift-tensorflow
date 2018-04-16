@@ -1,0 +1,844 @@
+---
+kind: Template
+apiVersion: v1
+metadata:
+  name: sxapi-demo-openshift-tensorflow-template
+  annotations:
+    openshift.io/display-name: SXAPI Demo TensorFlow (Ephemeral)
+    description: Template for building a full demo application (frontend + api + ia
+      backend) using sxapi in an openshift PaaS
+    iconClass: icon-nodejs
+    tags: startx,demo,sxapi,tensorflow
+    openshift.io/provider-display-name: STARTX
+    openshift.io/documentation-url: https://github.com/startxfr/sxapi-demo-openshift-tensorflow/blob/prod/README.md
+    openshift.io/support-url: https://github.com/startxfr/sxapi-demo-openshift-tensorflow/issues/new
+message: Your demo stack started to build in your project. You can use openshift console
+  to observe deployment.
+labels:
+  template: sxapi-demo-openshift-tensorflow-template
+objects:
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: startx-${BASE_IMAGE_TAG}
+    annotations:
+      openshift.io/display-name: STARTX Base images (${BASE_IMAGE_TAG})
+      openshift.io/generated-by: STARTX
+    labels:
+      base-image: startx-${BASE_IMAGE_TAG}
+      app: sxapi-demo
+      type: backend
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+  spec:
+    tags:
+    - name: tensorflow-mnist
+      annotations:
+        openshift.io/display-name: TensorFlow mnist image (latest)
+        description: TensorFlow mnist image relying on Kubernetes 1.7 or Openshift
+          3.7
+        iconClass: icon-processserver
+        version: latest
+        sampleRepo: https://github.com/startxfr/docker-images-example-tensorflow.git
+      from:
+        kind: DockerImage
+        name: submod/mnist-app:latest
+    - name: tensorflow
+      annotations:
+        openshift.io/display-name: TensorFlow base image (latest)
+        description: TensorFlow IA base image relying on latest release and based
+          on radanalyticsio docker image
+        iconClass: icon-processserver
+        version: latest
+        sampleRepo: https://github.com/startxfr/docker-images-example-tensorflow.git
+      from:
+        kind: DockerImage
+        name: radanalyticsio/tensorflow-serving-s2i:latest
+    - name: nodejs
+      annotations:
+        openshift.io/display-name: NodeJS base image (${BASE_IMAGE_TAG})
+        description: NodeJS base image relying on ${BASE_IMAGE_TAG} and based on startx/nodejs
+          docker image
+        iconClass: icon-nodejs
+        version: "${BASE_IMAGE_TAG}"
+        sampleRepo: https://github.com/startxfr/docker-images-example-nodejs.git
+      from:
+        kind: DockerImage
+        name: startx/sv-nodejs:${BASE_IMAGE_TAG}
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: "${APP_NAME}-${SOURCE_BRANCH}"
+    annotations:
+      openshift.io/display-name: SXAPI Demo - API (${SOURCE_BRANCH})
+      openshift.io/generated-by: STARTX
+    labels:
+      base-image: "${APP_NAME}-${BASE_IMAGE_TAG}"
+      app: "${APP_NAME}"
+      type: all
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+  spec:
+    tags:
+    - name: api
+      annotations:
+        openshift.io/display-name: SXAPI ${APP_NAME} - API ${SOURCE_BRANCH} image
+        description: NodeJS API image ready to run the SXAPI ${APP_NAME} api backend
+          service based on ${SOURCE_BRANCH} source code.
+        iconClass: icon-nodejs
+        tags: startx,nodejs,frontend,api
+        supports: http,nodejs
+        version: api
+    - name: tf-reg
+      annotations:
+        openshift.io/display-name: SXAPI ${APP_NAME} - TensorFlow ${SOURCE_BRANCH}
+          regression image
+        description: TensorFlow regression image ready to run the SXAPI ${APP_NAME}
+          AI service based on ${SOURCE_BRANCH} source code.
+        iconClass: icon-processserver
+        tags: startx,nodejs,backend,ai,regression
+        supports: http
+        version: tf-reg
+    - name: tf-cnn
+      annotations:
+        openshift.io/display-name: SXAPI ${APP_NAME} - TensorFlow ${SOURCE_BRANCH}
+          cnn image
+        description: TensorFlow cnn image ready to run the SXAPI ${APP_NAME} AI service
+          based on ${SOURCE_BRANCH} source code.
+        iconClass: icon-processserver
+        tags: startx,nodejs,backend,ai,cnn
+        supports: http
+        version: tf-cnn
+    - name: www
+      annotations:
+        openshift.io/display-name: SXAPI ${APP_NAME} - WWW ${SOURCE_BRANCH} image
+        description: NodeJS WWW image ready to run the SXAPI ${APP_NAME} web frontend
+          service based on ${SOURCE_BRANCH} source code.
+        iconClass: icon-nodejs
+        tags: startx,nodejs,frontend,www
+        supports: http,nodejs
+        version: www
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APP_NAME}-${SOURCE_BRANCH}-api"
+    labels:
+      app: "${APP_NAME}"
+      type: "${SOURCE_BRANCH}-api"
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+    annotations:
+      openshift.io/generated-by: STARTX
+  spec:
+    triggers:
+    - type: GitHub
+      github:
+        secret: "${WEBHOOK_TOKEN}"
+    - type: Generic
+      generic:
+        secret: "${WEBHOOK_TOKEN}"
+    - type: ImageChange
+      imageChange: {}
+    - type: ConfigChange
+    runPolicy: SerialLatestOnly
+    source:
+      type: Git
+      git:
+        uri: https://github.com/startxfr/sxapi-demo-openshift-tensorflow.git
+        ref: "${SOURCE_BRANCH}"
+      contextDir: api
+    strategy:
+      type: Source
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: startx-${BASE_IMAGE_TAG}:nodejs
+        env:
+        - name: SX_VERBOSE
+          value: 'true'
+    output:
+      to:
+        kind: ImageStreamTag
+        name: "${APP_NAME}-${SOURCE_BRANCH}:api"
+    resources: {}
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APP_NAME}-${SOURCE_BRANCH}-tf-reg"
+    labels:
+      app: "${APP_NAME}"
+      type: "${SOURCE_BRANCH}-tf-reg"
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+    annotations:
+      openshift.io/generated-by: STARTX
+  spec:
+    triggers:
+    - type: GitHub
+      github:
+        secret: "${WEBHOOK_TOKEN}"
+    - type: Generic
+      generic:
+        secret: "${WEBHOOK_TOKEN}"
+    - type: ImageChange
+    - type: ConfigChange
+    runPolicy: SerialLatestOnly
+    source:
+      type: Git
+      git:
+        uri: https://github.com/startxfr/sxapi-demo-openshift-tensorflow.git
+        ref: "${SOURCE_BRANCH}"
+      contextDir: tf/regression
+    strategy:
+      type: Source
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: startx-${BASE_IMAGE_TAG}:tensorflow
+    output:
+      to:
+        kind: ImageStreamTag
+        name: "${APP_NAME}-${SOURCE_BRANCH}:tf-reg"
+    resources: {}
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APP_NAME}-${SOURCE_BRANCH}-tf-cnn"
+    labels:
+      app: "${APP_NAME}"
+      type: "${SOURCE_BRANCH}-tf-cnn"
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+    annotations:
+      openshift.io/generated-by: STARTX
+  spec:
+    triggers:
+    - type: GitHub
+      github:
+        secret: "${WEBHOOK_TOKEN}"
+    - type: Generic
+      generic:
+        secret: "${WEBHOOK_TOKEN}"
+    - type: ImageChange
+    - type: ConfigChange
+    runPolicy: SerialLatestOnly
+    source:
+      type: Git
+      git:
+        uri: https://github.com/startxfr/sxapi-demo-openshift-tensorflow.git
+        ref: "${SOURCE_BRANCH}"
+      contextDir: tf/cnn
+    strategy:
+      type: Source
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: startx-${BASE_IMAGE_TAG}:tensorflow
+    output:
+      to:
+        kind: ImageStreamTag
+        name: "${APP_NAME}-${SOURCE_BRANCH}:tf-cnn"
+    resources: {}
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APP_NAME}-${SOURCE_BRANCH}-www"
+    labels:
+      app: "${APP_NAME}"
+      type: "${SOURCE_BRANCH}-www"
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+    annotations:
+      openshift.io/generated-by: STARTX
+  spec:
+    triggers:
+    - type: GitHub
+      github:
+        secret: "${WEBHOOK_TOKEN}"
+    - type: Generic
+      generic:
+        secret: "${WEBHOOK_TOKEN}"
+    - type: ImageChange
+      imageChange: {}
+    - type: ConfigChange
+    runPolicy: SerialLatestOnly
+    source:
+      type: Git
+      git:
+        uri: https://github.com/startxfr/sxapi-demo-openshift-tensorflow.git
+        ref: "${SOURCE_BRANCH}"
+      contextDir: www
+    strategy:
+      type: Source
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: startx-${BASE_IMAGE_TAG}:nodejs
+        env:
+        - name: SX_VERBOSE
+          value: 'true'
+    output:
+      to:
+        kind: ImageStreamTag
+        name: "${APP_NAME}-${SOURCE_BRANCH}:www"
+    resources: {}
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: tensorflow-mnist
+    labels:
+      app: tensorflow
+      type: tensorflow-mnist
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+    annotations:
+      openshift.io/generated-by: STARTX
+  spec:
+    strategy:
+      type: Rolling
+      rollingParams:
+        timeoutSeconds: 20
+        maxUnavailable: 25%
+        maxSurge: 25%
+      resources: {}
+    triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - tensorflow-mnist
+        from:
+          kind: ImageStreamTag
+          name: startx-${BASE_IMAGE_TAG}:tensorflow-mnist
+    - type: ConfigChange
+    replicas: 1
+    selector:
+      app: tensorflow
+      type: tensorflow-mnist
+      name: tensorflow-mnist
+      deploymentconfig: tensorflow-mnist
+    template:
+      metadata:
+        labels:
+          app: tensorflow
+          type: tensorflow-mnist
+          name: tensorflow-mnist
+          provider: startx
+          deploymentconfig: tensorflow-mnist
+          template: sxapi-demo-openshift-tensorflow-template
+        annotations:
+          openshift.io/generated-by: STARTX
+      spec:
+        containers:
+        - name: tensorflow-mnist
+          image: " "
+          env:
+          - name: PREDICTION_HOST1
+            value: tensorflow-reg
+          - name: PREDICTION_HOST2
+            value: tensorflow-cnn
+          - name: PREDICTION_PORT1
+            value: '6006'
+          - name: PREDICTION_PORT2
+            value: '6006'
+          ports:
+          - containerPort: 8000
+            protocol: TCP
+          - containerPort: 5000
+            protocol: TCP
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: tensorflow-reg
+    labels:
+      app: tensorflow
+      type: tensorflow-reg
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+    annotations:
+      openshift.io/generated-by: STARTX
+  spec:
+    strategy:
+      type: Rolling
+      rollingParams:
+        timeoutSeconds: 20
+        maxUnavailable: 25%
+        maxSurge: 25%
+    triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - tensorflow-reg
+        from:
+          kind: ImageStreamTag
+          name: "${APP_NAME}-${SOURCE_BRANCH}:tf-reg"
+    - type: ConfigChange
+    replicas: 1
+    selector:
+      app: tensorflow
+      type: tensorflow-reg
+      name: tensorflow-reg
+      deploymentconfig: tensorflow-reg
+    template:
+      metadata:
+        labels:
+          app: tensorflow
+          type: tensorflow-reg
+          name: tensorflow-reg
+          provider: startx
+          deploymentconfig: tensorflow-reg
+          template: sxapi-demo-openshift-tensorflow-template
+        annotations:
+          openshift.io/generated-by: STARTX
+      spec:
+        containers:
+        - name: tensorflow-reg
+          image: " "
+          ports:
+          - containerPort: 6006
+            protocol: TCP
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: tensorflow-cnn
+    labels:
+      app: tensorflow
+      type: tensorflow-cnn
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+    annotations:
+      openshift.io/generated-by: STARTX
+  spec:
+    strategy:
+      type: Rolling
+      rollingParams:
+        timeoutSeconds: 20
+        maxUnavailable: 25%
+        maxSurge: 25%
+    triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - tensorflow-cnn
+        from:
+          kind: ImageStreamTag
+          name: "${APP_NAME}-${SOURCE_BRANCH}:tf-cnn"
+    - type: ConfigChange
+    replicas: 1
+    selector:
+      app: tensorflow
+      type: tensorflow-cnn
+      name: tensorflow-cnn
+      deploymentconfig: tensorflow-cnn
+    template:
+      metadata:
+        labels:
+          app: tensorflow
+          type: tensorflow-cnn
+          name: tensorflow-cnn
+          provider: startx
+          deploymentconfig: tensorflow-cnn
+          template: sxapi-demo-openshift-tensorflow-template
+        annotations:
+          openshift.io/generated-by: STARTX
+      spec:
+        containers:
+        - name: tensorflow-cnn
+          image: " "
+          ports:
+          - containerPort: 6006
+            protocol: TCP
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: "${APP_NAME}-${SOURCE_BRANCH}-api"
+    labels:
+      app: "${APP_NAME}"
+      type: "${SOURCE_BRANCH}-api"
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+    annotations:
+      openshift.io/generated-by: STARTX
+  spec:
+    strategy:
+      type: Rolling
+      rollingParams:
+        timeoutSeconds: 30
+        maxUnavailable: 25%
+        maxSurge: 25%
+      resources: {}
+    triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - "${APP_NAME}-${SOURCE_BRANCH}-api"
+        from:
+          kind: ImageStreamTag
+          name: "${APP_NAME}-${SOURCE_BRANCH}:api"
+    - type: ConfigChange
+    replicas: 2
+    test: false
+    selector:
+      app: "${APP_NAME}"
+      type: "${SOURCE_BRANCH}-api"
+      deploymentconfig: "${APP_NAME}-${SOURCE_BRANCH}-api"
+    template:
+      metadata:
+        labels:
+          app: "${APP_NAME}"
+          type: "${SOURCE_BRANCH}-api"
+          provider: startx
+          template: sxapi-demo-openshift-tensorflow-template
+          deploymentconfig: "${APP_NAME}-${SOURCE_BRANCH}-api"
+        annotations:
+          openshift.io/generated-by: STARTX
+      spec:
+        containers:
+        - name: "${APP_NAME}-${SOURCE_BRANCH}-api"
+          image: " "
+          env:
+          - name: SX_VERBOSE
+            value: 'true'
+          - name: SX_DEBUG
+            value: 'true'
+          command:
+          - "/bin/sx-nodejs"
+          args:
+          - run
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources:
+            limits:
+              memory: 128Mi
+          livenessProbe:
+            exec:
+              command:
+              - "/bin/sx-nodejs"
+              - isLive
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 20
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: "/health"
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 10
+            timeoutSeconds: 1
+            periodSeconds: 15
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: "/dev/termination-log"
+          imagePullPolicy: Always
+        restartPolicy: Always
+        terminationGracePeriodSeconds: 30
+        dnsPolicy: ClusterFirst
+        securityContext: {}
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: "${APP_NAME}-${SOURCE_BRANCH}-www"
+    labels:
+      app: "${APP_NAME}"
+      type: "${SOURCE_BRANCH}-www"
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+    annotations:
+      openshift.io/generated-by: STARTX
+  spec:
+    strategy:
+      type: Rolling
+      rollingParams:
+        timeoutSeconds: 30
+        maxUnavailable: 25%
+        maxSurge: 25%
+      resources: {}
+    triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - "${APP_NAME}-${SOURCE_BRANCH}-www"
+        from:
+          kind: ImageStreamTag
+          name: "${APP_NAME}-${SOURCE_BRANCH}:www"
+    - type: ConfigChange
+    replicas: 2
+    test: false
+    selector:
+      app: "${APP_NAME}"
+      type: "${SOURCE_BRANCH}-www"
+      deploymentconfig: "${APP_NAME}-${SOURCE_BRANCH}-www"
+    template:
+      metadata:
+        labels:
+          app: "${APP_NAME}"
+          type: "${SOURCE_BRANCH}-www"
+          provider: startx
+          template: sxapi-demo-openshift-tensorflow-template
+          deploymentconfig: "${APP_NAME}-${SOURCE_BRANCH}-www"
+        annotations:
+          openshift.io/generated-by: STARTX
+      spec:
+        containers:
+        - name: "${APP_NAME}-${SOURCE_BRANCH}-www"
+          image: " "
+          env:
+          - name: SX_VERBOSE
+            value: 'true'
+          - name: SX_DEBUG
+            value: 'true'
+          - name: DEMO_API
+            value: "${APP_NAME}-${SOURCE_BRANCH}-api-${DEMO_API}"
+          - name: DEMO_MNIST
+            value: tensorflow-mnist-${DEMO_API}
+          command:
+          - "/bin/sx-nodejs"
+          args:
+          - run
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources:
+            limits:
+              memory: 128Mi
+          livenessProbe:
+            exec:
+              command:
+              - "/bin/sx-nodejs"
+              - isLive
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 20
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: "/health"
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 10
+            timeoutSeconds: 1
+            periodSeconds: 15
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: "/dev/termination-log"
+          imagePullPolicy: Always
+        restartPolicy: Always
+        terminationGracePeriodSeconds: 30
+        dnsPolicy: ClusterFirst
+        securityContext: {}
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: "${APP_NAME}-${SOURCE_BRANCH}-www"
+    labels:
+      app: "${APP_NAME}"
+      type: "${SOURCE_BRANCH}-www"
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+    annotations:
+      service.alpha.openshift.io/dependencies: '[{"name": "${APP_NAME}-${SOURCE_BRANCH}-api",
+        "namespace": "", "kind": "Service"}]'
+      template.openshift.io/expose-uri: http://{.spec.clusterIP}:{.spec.ports[?(.name=="http")].port}
+      openshift.io/generated-by: STARTX
+  spec:
+    ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+    selector:
+      app: "${APP_NAME}"
+      type: "${SOURCE_BRANCH}-www"
+      deploymentconfig: "${APP_NAME}-${SOURCE_BRANCH}-www"
+    type: ClusterIP
+    sessionAffinity: None
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: "${APP_NAME}-${SOURCE_BRANCH}-api"
+    labels:
+      app: "${APP_NAME}"
+      type: "${SOURCE_BRANCH}-api"
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+    annotations:
+      template.openshift.io/expose-uri: http://{.spec.clusterIP}:{.spec.ports[?(.name=="http")].port}
+      openshift.io/generated-by: STARTX
+  spec:
+    ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+    selector:
+      app: "${APP_NAME}"
+      type: "${SOURCE_BRANCH}-api"
+      deploymentconfig: "${APP_NAME}-${SOURCE_BRANCH}-api"
+    type: ClusterIP
+    sessionAffinity: None
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: tensorflow-mnist
+    labels:
+      app: tensorflow
+      type: tensorflow-mnist
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+    annotations:
+      template.openshift.io/expose-uri: http://{.spec.clusterIP}:{.spec.ports[?(.name=="8000-tcp")].port}
+      openshift.io/generated-by: STARTX
+  spec:
+    ports:
+    - name: 8000-tcp
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
+    - name: 5000-tcp
+      protocol: TCP
+      port: 5000
+      targetPort: 5000
+    selector:
+      app: tensorflow
+      type: tensorflow-mnist
+      deploymentconfig: tensorflow-mnist
+    type: ClusterIP
+    sessionAffinity: None
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: tensorflow-reg
+    labels:
+      app: tensorflow
+      type: tensorflow-reg
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+    annotations:
+      openshift.io/generated-by: STARTX
+  spec:
+    ports:
+    - name: 6006-tcp
+      protocol: TCP
+      port: 6006
+      targetPort: 6006
+    selector:
+      app: tensorflow
+      type: tensorflow-reg
+      deploymentconfig: tensorflow-reg
+    type: ClusterIP
+    sessionAffinity: None
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: tensorflow-cnn
+    labels:
+      app: tensorflow
+      type: tensorflow-cnn
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+    annotations:
+      openshift.io/generated-by: STARTX
+  spec:
+    ports:
+    - name: 6006-tcp
+      protocol: TCP
+      port: 6006
+      targetPort: 6006
+    selector:
+      app: tensorflow
+      type: tensorflow-cnn
+      deploymentconfig: tensorflow-cnn
+    type: ClusterIP
+    sessionAffinity: None
+- kind: Route
+  apiVersion: v1
+  metadata:
+    name: tensorflow-mnist
+    labels:
+      app: tensorflow
+      type: tensorflow-mnist
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+    annotations:
+      openshift.io/generated-by: STARTX
+  spec:
+    to:
+      kind: Service
+      name: tensorflow-mnist
+      weight: 100
+    port:
+      targetPort: 8000-tcp
+- kind: Route
+  apiVersion: v1
+  metadata:
+    name: "${APP_NAME}-${SOURCE_BRANCH}-api"
+    labels:
+      app: "${APP_NAME}"
+      type: "${SOURCE_BRANCH}-api"
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+    annotations:
+      openshift.io/generated-by: STARTX
+      haproxy.router.openshift.io/balance: roundrobin
+  spec:
+    to:
+      kind: Service
+      name: "${APP_NAME}-${SOURCE_BRANCH}-api"
+      weight: 100
+- kind: Route
+  apiVersion: v1
+  metadata:
+    name: "${APP_NAME}-${SOURCE_BRANCH}-www"
+    labels:
+      app: "${APP_NAME}"
+      type: "${SOURCE_BRANCH}-www"
+      provider: startx
+      template: sxapi-demo-openshift-tensorflow-template
+    annotations:
+      openshift.io/generated-by: STARTX
+      haproxy.router.openshift.io/balance: roundrobin
+  spec:
+    to:
+      kind: Service
+      name: "${APP_NAME}-${SOURCE_BRANCH}-www"
+      weight: 100
+parameters:
+- name: APP_NAME
+  displayName: Short name of the application
+  description: Name of the application used to identify and tag ressources related
+    to this full stack
+  value: digit
+  required: true
+- name: SOURCE_BRANCH
+  displayName: Application source-code branch
+  description: Name of the branch to use for building this application (dev, test,
+    test, prod)
+  value: prod
+  required: true
+- name: BASE_IMAGE_TAG
+  displayName: Base image tag
+  description: Base image flavour to use for buidling this application (latest, fc27,
+    fc28, centos6, centos7)
+  value: latest
+  required: true
+- name: DEMO_API
+  displayName: API fqdn suffix
+  description: Domain name suffix for generating API endpoint to use in this frontend
+    (xxxxx.openshift.demo.startx.fr were xxxxx is your project namespace)
+  value: demo.openshift.demo.startx.fr
+  required: true
+- name: WEBHOOK_TOKEN
+  displayName: Webhook token
+  description: Secret token to use in github, gitlab or other to hook build action
+    when code change
+  generate: expression
+  from: "[a-zA-Z0-9]{24}"
+  required: true
